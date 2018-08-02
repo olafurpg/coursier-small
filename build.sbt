@@ -32,7 +32,10 @@ lazy val small = project
   .settings(
     moduleName := "coursier-small",
     assemblyShadeRules.in(assembly) := Seq(
-      ShadeRule.rename("io.github.soc.directories.**" -> "com.geirsson.shaded.directories.@1").inAll,
+      ShadeRule
+        .rename(
+          "io.github.soc.directories.**" -> "com.geirsson.shaded.directories.@1")
+        .inAll,
       ShadeRule.rename("coursier.**" -> "com.geirsson.shaded.coursier.@1").inAll
     ),
     artifact.in(Compile, packageBin) := artifact.in(Compile, assembly).value,

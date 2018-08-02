@@ -20,7 +20,8 @@ Non-goals:
 ## Usage
 
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.geirsson/coursier-small_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.geirsson/sbt-ci-release)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.geirsson/coursier-small_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.geirsson/coursier-small_2.12)
+
 
 ```scala
 // Supports 2.10, 2.11 and 2.12
