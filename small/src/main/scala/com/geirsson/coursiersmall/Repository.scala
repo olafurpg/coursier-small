@@ -1,4 +1,4 @@
-package com.geirsson.small
+package com.geirsson.coursiersmall
 
 sealed abstract class Repository
 object Repository {

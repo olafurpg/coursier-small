@@ -14,8 +14,17 @@ inThisBuild(
         "olafurpg@gmail.com",
         url("https://geirsson.com")
       )
-    )
-  ))
+    ),
+    scalaVersion := "2.12.6",
+    crossScalaVersions := List(
+      "2.12.6",
+      "2.11.12",
+      "2.10.6"
+    ),
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+    libraryDependencies += "com.lihaoyi" %% "utest" % "0.6.3" % Test
+  )
+)
 
 skip in publish := true
 
