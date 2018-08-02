@@ -3,6 +3,9 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 inThisBuild(
   List(
+    version ~= { old =>
+      old.replace('+', '-')
+    },
     organization := "com.geirsson",
     homepage := Some(url("https://github.com/olafurpg/coursier-small")),
     licenses := List(
@@ -40,10 +43,13 @@ lazy val small = project
     pomPostProcess := { node =>
       new RuleTransformer(new RewriteRule {
         override def transform(node: XmlNode): XmlNodeSeq = node match {
-          case _: Elem if node.label == "dependency" =>
-            Comment(
-              "the dependency that was here has been absorbed via sbt-assembly"
-            )
+          case e: Elem
+              if node.label == "dependency" &&
+                e.child.exists { child =>
+                  child.label == "artifactId" &&
+                  child.text.trim.startsWith("coursier")
+                } =>
+            Comment("shaded coursier dependency")
           case _ => node
         }
       }).transform(node).head
