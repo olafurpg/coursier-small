@@ -32,7 +32,7 @@ lazy val small = project
   .settings(
     moduleName := "coursier-small",
     assemblyShadeRules.in(assembly) := Seq(
-      ShadeRule.rename("coursier.**" -> "com.geirsson.coursier.shaded.@1").inAll
+      ShadeRule.rename("coursier.**" -> "com.geirsson.shaded.coursier.@1").inAll
     ),
     artifact.in(Compile, packageBin) := artifact.in(Compile, assembly).value,
     assemblyOption.in(assembly) ~= { _.copy(includeScala = false) },
@@ -40,7 +40,7 @@ lazy val small = project
     pomPostProcess := { node =>
       new RuleTransformer(new RewriteRule {
         override def transform(node: XmlNode): XmlNodeSeq = node match {
-          case e: Elem if node.label == "dependency" =>
+          case _: Elem if node.label == "dependency" =>
             Comment(
               "the dependency that was here has been absorbed via sbt-assembly"
             )
