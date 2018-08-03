@@ -4,7 +4,6 @@ import java.nio.file.Path
 import coursier._
 import coursier.util.Gather
 import coursier.util.Task
-import java.io.OutputStreamWriter
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object CoursierSmall {
@@ -27,8 +26,7 @@ object CoursierSmall {
       case Repository.Ivy2Local => Cache.ivy2Local
       case maven: Repository.Maven => MavenRepository(maven.root)
     }
-    val term =
-      new TermDisplay(new OutputStreamWriter(settings.out), fallbackMode = true)
+    val term = new TermDisplay(settings.writer, fallbackMode = true)
     term.init()
     val fetch = Fetch.from(repositories, Cache.fetch[Task](logger = Some(term)))
     val resolution = res.process.run(fetch).unsafeRun()
