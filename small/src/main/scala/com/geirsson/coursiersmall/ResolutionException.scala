@@ -10,7 +10,7 @@ final class ResolutionException(
       .append(settings.toString)
       .append("\n")
     errors.foreach { error =>
-      val dep = error.dependency.asGradleString
+      val dep = error.dependency.asCoursierString
       sb.append("Dependency ")
         .append("'")
         .append(dep)
