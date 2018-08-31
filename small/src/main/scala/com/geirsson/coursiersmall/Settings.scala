@@ -1,7 +1,9 @@
 package com.geirsson.coursiersmall
 
+import coursier.Cache
 import java.io.OutputStreamWriter
 import java.io.Writer
+import scala.concurrent.duration.Duration
 
 /**
   * Configuration for a resolution.
@@ -15,13 +17,17 @@ import java.io.Writer
 final class Settings private (
     val dependencies: List[Dependency],
     val repositories: List[Repository],
-    val writer: Writer
+    val writer: Writer,
+    val ttl: Option[Duration],
+    val forceVersions: List[Dependency]
 ) {
 
   override def toString: String = {
     s"""|Settings(
-        |  dependencies = $dependencies,
-        |  repositories = $repositories
+        |  dependencies  = $dependencies
+        |  repositories  = $repositories
+        |  ttl           = $ttl
+        |  forceVersions = $forceVersions
         |)""".stripMargin
   }
 
@@ -32,7 +38,9 @@ final class Settings private (
         Repository.MavenCentral,
         Repository.Ivy2Local
       ),
-      writer = new OutputStreamWriter(System.out)
+      writer = new OutputStreamWriter(System.out),
+      ttl = Cache.defaultTtl,
+      forceVersions = Nil
     )
   }
 
@@ -48,15 +56,27 @@ final class Settings private (
     copy(writer = writer)
   }
 
+  def withTtl(ttl: Option[Duration]): Settings = {
+    copy(ttl = ttl)
+  }
+
+  def withForceVersions(forceVersions: List[Dependency]): Settings = {
+    copy(forceVersions = forceVersions)
+  }
+
   private[this] def copy(
       dependencies: List[Dependency] = this.dependencies,
       repositories: List[Repository] = this.repositories,
-      writer: Writer = this.writer
+      writer: Writer = this.writer,
+      ttl: Option[Duration] = this.ttl,
+      forceVersions: List[Dependency] = this.forceVersions
   ): Settings = {
     new Settings(
       dependencies = dependencies,
       repositories = repositories,
-      writer = writer
+      writer = writer,
+      ttl = ttl,
+      forceVersions = forceVersions
     )
   }
 }

@@ -21,16 +21,28 @@ object CoursierSmall {
     val dependencies = settings.dependencies.map { dep =>
       coursier.Dependency(Module(dep.organization, dep.name), dep.version)
     }
-    val res = Resolution(dependencies.toSet)
+    val forceVersions = settings.forceVersions.iterator.map { dep =>
+      (Module(dep.organization, dep.name), dep.version)
+    }
+    val baseResolution = Resolution(
+      rootDependencies = dependencies.toSet,
+      forceVersions = forceVersions.toMap
+    )
     val repositories = settings.repositories.map {
       case Repository.Ivy2Local => Cache.ivy2Local
       case maven: Repository.Maven => MavenRepository(maven.root)
     }
     val term = new TermDisplay(settings.writer, fallbackMode = true)
     term.init()
-    val fetch = Fetch.from(repositories, Cache.fetch[Task](logger = Some(term)))
-    val resolution = res.process.run(fetch).unsafeRun()
-    val errors = resolution.errors
+    val fetch = Fetch.from(
+      repositories,
+      Cache.fetch[Task](
+        logger = Some(term),
+        ttl = settings.ttl
+      )
+    )
+    val fetchResolution = baseResolution.process.run(fetch).unsafeRun()
+    val errors = fetchResolution.errors
     if (errors.nonEmpty) {
       val resolutionErrors = errors.map {
         case ((module, version), messages) =>
@@ -41,7 +53,7 @@ object CoursierSmall {
       }
       throw new ResolutionException(settings, resolutionErrors.toList)
     }
-    val artifacts = resolution.artifacts
+    val artifacts = fetchResolution.artifacts
     val localArtifacts = Gather[Task]
       .gather(artifacts.map(artifact => Cache.file[Task](artifact).run))
       .unsafeRun()
