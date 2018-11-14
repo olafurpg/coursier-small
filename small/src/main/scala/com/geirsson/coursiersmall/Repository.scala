@@ -22,4 +22,6 @@ object Repository {
     new Maven("https://oss.sonatype.org/content/repositories/releases")
   def SonatypeSnapshots: Repository =
     new Maven("https://oss.sonatype.org/content/repositories/snapshots")
+  def bintrayIvyRepo(owner: String, repo: String): Repository =
+    Ivy(s"https://dl.bintray.com/$owner/$repo/")
 }

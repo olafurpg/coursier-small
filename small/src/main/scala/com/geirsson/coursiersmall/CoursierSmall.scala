@@ -4,8 +4,7 @@ import java.nio.file.Path
 
 import coursier._
 import coursier.ivy.{IvyRepository, Pattern}
-import coursier.util.Gather
-import coursier.util.Task
+import coursier.util.{Gather, Task}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,7 +33,8 @@ object CoursierSmall {
     val repositories = settings.repositories.map {
       case Repository.Ivy2Local => Cache.ivy2Local
       case maven: Repository.Maven => MavenRepository(maven.root)
-      case Repository.Ivy(root) => IvyRepository.fromPattern(root +: Pattern.default)
+      case Repository.Ivy(root) =>
+        IvyRepository.fromPattern(root +: Pattern.default)
     }
     val term = new TermDisplay(settings.writer, fallbackMode = true)
     term.init()
@@ -63,8 +63,8 @@ object CoursierSmall {
       .unsafeRun()
     val jars = localArtifacts.flatMap {
       case Left(e) =>
-        import coursier.{FileError => A}
         import com.geirsson.coursiersmall.{FileException => B}
+        import coursier.{FileError => A}
         throw e match {
           case A.DownloadError(reason) =>
             new B.DownloadError(reason)
