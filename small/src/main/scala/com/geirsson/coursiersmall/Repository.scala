@@ -7,6 +7,13 @@ object Repository {
       s"""Maven("$root")"""
     }
   }
+
+  final case class Ivy(root: String) extends Repository {
+    override def toString: String = {
+      s"""Ivy("$root")"""
+    }
+  }
+
   case object Ivy2Local extends Repository
 
   def MavenCentral: Repository =
