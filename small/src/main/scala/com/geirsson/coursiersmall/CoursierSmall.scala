@@ -1,9 +1,11 @@
 package com.geirsson.coursiersmall
 
 import java.nio.file.Path
+
 import coursier._
-import coursier.util.Gather
-import coursier.util.Task
+import coursier.ivy.{IvyRepository, Pattern}
+import coursier.util.{Gather, Task}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object CoursierSmall {
@@ -19,7 +21,17 @@ object CoursierSmall {
     */
   def fetch(settings: Settings): List[Path] = {
     val dependencies = settings.dependencies.map { dep =>
-      coursier.Dependency(Module(dep.organization, dep.name), dep.version)
+      val split = dep.name.split(";")
+      val name = split.head
+      val attributes =
+        for {
+          attribute <- split.iterator.drop(1)
+          Seq(key, value) = attribute.split("=", 2).toSeq
+        } yield (key, value)
+      coursier.Dependency(
+        Module(dep.organization, name, attributes = attributes.toMap),
+        dep.version
+      )
     }
     val forceVersions = settings.forceVersions.iterator.map { dep =>
       (Module(dep.organization, dep.name), dep.version)
@@ -31,6 +43,8 @@ object CoursierSmall {
     val repositories = settings.repositories.map {
       case Repository.Ivy2Local => Cache.ivy2Local
       case maven: Repository.Maven => MavenRepository(maven.root)
+      case Repository.Ivy(root) =>
+        IvyRepository.fromPattern(root +: Pattern.default)
     }
     val term = new TermDisplay(settings.writer, fallbackMode = true)
     term.init()
@@ -59,8 +73,8 @@ object CoursierSmall {
       .unsafeRun()
     val jars = localArtifacts.flatMap {
       case Left(e) =>
-        import coursier.{FileError => A}
         import com.geirsson.coursiersmall.{FileException => B}
+        import coursier.{FileError => A}
         throw e match {
           case A.DownloadError(reason) =>
             new B.DownloadError(reason)
