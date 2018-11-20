@@ -21,7 +21,17 @@ object CoursierSmall {
     */
   def fetch(settings: Settings): List[Path] = {
     val dependencies = settings.dependencies.map { dep =>
-      coursier.Dependency(Module(dep.organization, dep.name), dep.version)
+      val split = dep.name.split(";")
+      val name = split.head
+      val attributes =
+        for {
+          attribute <- split.iterator.drop(1)
+          Seq(key, value) = attribute.split("=", 2).toSeq
+        } yield (key, value)
+      coursier.Dependency(
+        Module(dep.organization, name, attributes = attributes.toMap),
+        dep.version
+      )
     }
     val forceVersions = settings.forceVersions.iterator.map { dep =>
       (Module(dep.organization, dep.name), dep.version)
