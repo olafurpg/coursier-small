@@ -59,5 +59,21 @@ object CoursierSmallSuite extends TestSuite {
         jars.exists(jar => jar.getFileName.toString.contains("sbt-assembly"))
       )
     }
+    "cache-policy" - {
+      val assembly =
+        new Dependency(
+          "ch.epfl.scala",
+          "bloop-frontend_2.12",
+          "1.0.0+369-a2222610"
+        )
+      val jars = CoursierSmall.fetch(
+        settings(assembly).addRepositories(
+          List(Repository.bintrayRepo("scalacenter", "releases"))
+        )
+      )
+      assert(
+        jars.exists(jar => jar.getFileName.toString.contains("frontend"))
+      )
+    }
   }
 }

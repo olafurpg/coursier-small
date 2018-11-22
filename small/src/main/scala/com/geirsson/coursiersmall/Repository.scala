@@ -8,7 +8,7 @@ object Repository {
     }
   }
 
-  final case class Ivy(root: String) extends Repository {
+  final class Ivy(val root: String) extends Repository {
     override def toString: String = {
       s"""Ivy("$root")"""
     }
@@ -22,6 +22,8 @@ object Repository {
     new Maven("https://oss.sonatype.org/content/repositories/releases")
   def SonatypeSnapshots: Repository =
     new Maven("https://oss.sonatype.org/content/repositories/snapshots")
+  def bintrayRepo(owner: String, repo: String): Repository =
+    new Maven(s"https://dl.bintray.com/$owner/$repo/")
   def bintrayIvyRepo(owner: String, repo: String): Repository =
-    Ivy(s"https://dl.bintray.com/$owner/$repo/")
+    new Ivy(s"https://dl.bintray.com/$owner/$repo/")
 }

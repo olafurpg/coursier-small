@@ -48,6 +48,10 @@ final class Settings private (
     copy(dependencies = dependencies)
   }
 
+  def addRepositories(newRepositories: List[Repository]): Settings = {
+    withRepositories(repositories ++ newRepositories)
+  }
+
   def withRepositories(repositories: List[Repository]): Settings = {
     copy(repositories = repositories)
   }
