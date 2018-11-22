@@ -1,11 +1,11 @@
 package com.geirsson.coursiersmall
 
 import java.nio.file.Path
-
 import coursier._
 import coursier.ivy.{IvyRepository, Pattern}
+import coursier.util.EitherT
 import coursier.util.{Gather, Task}
-
+import java.io.File
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object CoursierSmall {
@@ -20,6 +20,7 @@ object CoursierSmall {
     * @throws FileException   in case of problems caching files
     */
   def fetch(settings: Settings): List[Path] = {
+
     val dependencies = settings.dependencies.map { dep =>
       val split = dep.name.split(";")
       val name = split.head
@@ -41,19 +42,29 @@ object CoursierSmall {
       forceVersions = forceVersions.toMap
     )
     val repositories = settings.repositories.map {
-      case Repository.Ivy2Local => Cache.ivy2Local
-      case maven: Repository.Maven => MavenRepository(maven.root)
-      case Repository.Ivy(root) =>
-        IvyRepository.fromPattern(root +: Pattern.default)
+      case Repository.Ivy2Local =>
+        Cache.ivy2Local
+      case maven: Repository.Maven =>
+        MavenRepository(maven.root)
+      case ivy: Repository.Ivy =>
+        IvyRepository.fromPattern(ivy.root +: Pattern.default)
     }
+
     val term = new TermDisplay(settings.writer, fallbackMode = true)
     term.init()
-    val fetch = Fetch.from(
-      repositories,
+
+    val cachePolicies = CachePolicy.default.toList
+    val fetchs = cachePolicies.map { p =>
       Cache.fetch[Task](
         logger = Some(term),
-        ttl = settings.ttl
+        ttl = settings.ttl,
+        cachePolicy = p
       )
+    }
+    val fetch = Fetch.from(
+      repositories,
+      fetchs.head,
+      fetchs.tail: _*
     )
     val fetchResolution = baseResolution.process.run(fetch).unsafeRun()
     val errors = fetchResolution.errors
@@ -69,7 +80,11 @@ object CoursierSmall {
     }
     val artifacts = fetchResolution.artifacts
     val localArtifacts = Gather[Task]
-      .gather(artifacts.map(artifact => Cache.file[Task](artifact).run))
+      .gather(artifacts.map { artifact =>
+        def file(p: CachePolicy): EitherT[Task, FileError, File] =
+          Cache.file[Task](artifact, ttl = settings.ttl, cachePolicy = p)
+        (file(cachePolicies.head) /: cachePolicies.tail)(_ orElse file(_)).run
+      })
       .unsafeRun()
     val jars = localArtifacts.flatMap {
       case Left(e) =>
