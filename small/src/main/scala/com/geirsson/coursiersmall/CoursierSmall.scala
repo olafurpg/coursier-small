@@ -31,7 +31,8 @@ object CoursierSmall {
         } yield (key, value)
       coursier.Dependency(
         Module(dep.organization, name, attributes = attributes.toMap),
-        dep.version
+        dep.version,
+        transitive = dep.transitive
       )
     }
     val forceVersions = settings.forceVersions.iterator.map { dep =>
