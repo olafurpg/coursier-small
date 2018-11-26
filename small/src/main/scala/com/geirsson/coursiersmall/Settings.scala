@@ -19,7 +19,8 @@ final class Settings private (
     val repositories: List[Repository],
     val writer: Writer,
     val ttl: Option[Duration],
-    val forceVersions: List[Dependency]
+    val forceVersions: List[Dependency],
+    val classifiers: List[String]
 ) {
 
   override def toString: String = {
@@ -40,7 +41,8 @@ final class Settings private (
       ),
       writer = new OutputStreamWriter(System.out),
       ttl = Cache.defaultTtl,
-      forceVersions = Nil
+      forceVersions = Nil,
+      classifiers = Nil
     )
   }
 
@@ -68,19 +70,32 @@ final class Settings private (
     copy(forceVersions = forceVersions)
   }
 
+  /**
+    * Which classifier to use, for example sources or javadoc.
+    *
+    * If empty, uses default classifier which fetches regular jars containing bytecode.
+    * To fetch sources and default classifier in the same resolution, use `List("sources", "_")`,
+    * where `_` denotes the default classifier.
+    */
+  def withClassifiers(classifiers: List[String]): Settings = {
+    copy(classifiers = classifiers)
+  }
+
   private[this] def copy(
       dependencies: List[Dependency] = this.dependencies,
       repositories: List[Repository] = this.repositories,
       writer: Writer = this.writer,
       ttl: Option[Duration] = this.ttl,
-      forceVersions: List[Dependency] = this.forceVersions
+      forceVersions: List[Dependency] = this.forceVersions,
+      classifiers: List[String] = this.classifiers
   ): Settings = {
     new Settings(
       dependencies = dependencies,
       repositories = repositories,
       writer = writer,
       ttl = ttl,
-      forceVersions = forceVersions
+      forceVersions = forceVersions,
+      classifiers = classifiers
     )
   }
 }

@@ -78,7 +78,19 @@ object CoursierSmall {
       }
       throw new ResolutionException(settings, resolutionErrors.toList)
     }
-    val artifacts = fetchResolution.artifacts
+
+    val isDefaultClassifier =
+      settings.classifiers.isEmpty ||
+        settings.classifiers.contains("_")
+    val baseArtifacts: Seq[Artifact] =
+      if (isDefaultClassifier) fetchResolution.artifacts
+      else Nil
+
+    val nonDefaultClassifier = settings.classifiers.filterNot(_ == "_")
+    val classifierArtifacts: Seq[Artifact] =
+      if (nonDefaultClassifier.isEmpty) Nil
+      else fetchResolution.classifiersArtifacts(nonDefaultClassifier)
+    val artifacts = baseArtifacts ++ classifierArtifacts
     val localArtifacts = Gather[Task]
       .gather(artifacts.map { artifact =>
         def file(p: CachePolicy): EitherT[Task, FileError, File] =
