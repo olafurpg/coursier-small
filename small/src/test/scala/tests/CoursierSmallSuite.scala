@@ -92,5 +92,15 @@ object CoursierSmallSuite extends TestSuite {
         jars.exists(jar => !jar.getFileName.toString.endsWith("-sources.jar"))
       )
     }
+    "intransitive" - {
+      val semanticdb = new Dependency(
+        "org.scalameta",
+        "semanticdb-scalac_2.12.7",
+        "4.0.0"
+      ).withTransitive(false)
+      val jars = CoursierSmall.fetch(settings(semanticdb))
+      assert(jars.length == 1)
+      assert(jars.head.getFileName.toString.contains("semanticdb-scalac"))
+    }
   }
 }
