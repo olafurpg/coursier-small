@@ -75,5 +75,22 @@ object CoursierSmallSuite extends TestSuite {
         jars.exists(jar => jar.getFileName.toString.contains("frontend"))
       )
     }
+    "sources" - {
+      val ujson = new Dependency(
+        "com.lihaoyi",
+        "ujson_2.12",
+        "0.7.1"
+      )
+      val jars =
+        CoursierSmall.fetch(
+          settings(ujson).withClassifiers(List("sources", "_"))
+        )
+      assert(
+        jars.exists(jar => jar.getFileName.toString.endsWith("-sources.jar"))
+      )
+      assert(
+        jars.exists(jar => !jar.getFileName.toString.endsWith("-sources.jar"))
+      )
+    }
   }
 }
