@@ -1,8 +1,8 @@
 package com.geirsson.coursiersmall
 
 final class ResolutionException(
-    settings: Settings,
-    errors: List[ResolutionError]
+    val settings: Settings,
+    val errors: List[ResolutionError]
 ) extends Exception {
   override def getMessage: String = {
     val sb = new StringBuilder
