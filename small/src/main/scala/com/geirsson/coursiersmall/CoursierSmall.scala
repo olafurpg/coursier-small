@@ -84,7 +84,7 @@ object CoursierSmall {
       settings.classifiers.isEmpty ||
         settings.classifiers.contains("_")
     val baseArtifacts: Seq[Artifact] =
-      if (isDefaultClassifier) fetchResolution.artifacts
+      if (isDefaultClassifier) fetchResolution.artifacts(withOptional = true)
       else Nil
 
     val nonDefaultClassifier = settings.classifiers.filterNot(_ == "_")
@@ -99,10 +99,14 @@ object CoursierSmall {
         (file(cachePolicies.head) /: cachePolicies.tail)(_ orElse file(_)).run
       })
       .unsafeRun()
+      .zip(artifacts.map(_.isOptional))
+
+    import com.geirsson.coursiersmall.{FileException => B}
+    import coursier.{FileError => A}
     val jars = localArtifacts.flatMap {
-      case Left(e) =>
-        import com.geirsson.coursiersmall.{FileException => B}
-        import coursier.{FileError => A}
+      case (Left(A.NotFound(_, _)), true) =>
+        Nil
+      case (Left(e), _) =>
         throw e match {
           case A.DownloadError(reason) =>
             new B.DownloadError(reason)
@@ -121,7 +125,7 @@ object CoursierSmall {
           case A.ConcurrentDownload(url) =>
             new B.ConcurrentDownload(url)
         }
-      case Right(jar) if jar.getName.endsWith(".jar") => jar.toPath :: Nil
+      case (Right(jar), _) if jar.getName.endsWith(".jar") => jar.toPath :: Nil
       case _ => Nil
     }
     term.stop()

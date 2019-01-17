@@ -56,6 +56,6 @@ lazy val small = project
       }).transform(node).head
     },
     libraryDependencies ++= List(
-      "io.get-coursier" %% "coursier-cache" % "1.1.0-M6"
+      "io.get-coursier" %% "coursier-cache" % "1.1.0-M7"
     )
   )
